@@ -1,18 +1,18 @@
 #include <iostream>
 #include <string>
-#include <vector>
+#include <cmath>
 
 int main() {
 
-  float lastGrid[101][101] = {0};
-  float currentGrid[101][101];
+  double lastGrid[101][101] = {0};
+  double currentGrid[101][101] = {0};
   bool tempChange = true;
-  float averageVal;
-  float average(std::string neighboursList, float (*grid)[101], int i, int j);
+  double averageVal;
+  double average(std::string neighboursList, double (*grid)[101], int i, int j);
 
-  lastGrid[50][50] = 10;
-  lastGrid[40][60] = 7.2;
-  lastGrid[70][25] = -1.2;
+  currentGrid[50][50] = 10.0;
+  currentGrid[40][60] = 7.2;
+  currentGrid[70][25] = -1.2;
 
   while (tempChange==true) {
     tempChange = false;
@@ -26,32 +26,32 @@ int main() {
     for (int i=0; i<101; i++) {
       for (int j=0; j<101; j++) {
         //calculate the average value of 4 adjacent squares, bar corner
-        if (i==0) {
-          if (j==0) {
+        if (j==0) {
+          if (i==0) {
             averageVal = average("ES", lastGrid, i, j);
           }
-          else if (j==100) {
+          else if (i==100) {
             averageVal = average("SW", lastGrid, i, j);
           }
           else {
             averageVal = average("ESW", lastGrid, i, j);
           }
         }
-        else if (i==100) {
-          if (j==0) {
+        else if (j==100) {
+          if (i==0) {
             averageVal = average("NE", lastGrid, i, j);
           }
-          else if (j==100) {
+          else if (i==100) {
             averageVal = average("NW", lastGrid, i, j);
           }
           else {
             averageVal = average("NEW", lastGrid, i, j);
           }
         }
-        else if (j==0) {
+        else if (i==0) {
           averageVal = average("NES", lastGrid, i, j);
         }
-        else if (j==100) {
+        else if (i==100) {
           averageVal = average("NSW", lastGrid, i, j);
         }
         else {
@@ -59,7 +59,7 @@ int main() {
         }
 
         //check if values have converged
-        if (averageVal!=lastGrid[i][j]) {
+        if (std::abs(averageVal-lastGrid[i][j])> 1e-4f) {
           tempChange = true;
         }
         currentGrid[i][j] = averageVal;
@@ -67,13 +67,13 @@ int main() {
     }
   }
 
-  std::cout << "Equilibrium state reached. Centroid temp is " << currentGrid[55][55] << "K" << std::endl;
+  std::cout << "Equilibrium state reached. Centroid temp is " << currentGrid[55][55] << " K" << std::endl;
 
   return 0;
 }
 
-float average(std::string neighboursList, float (*grid)[101], int i, int j) {
-  float sum = grid[i][j];
+double average(std::string neighboursList, double (*grid)[101], int i, int j) {
+  double sum = grid[i][j];
   if (neighboursList.length()==4) {
     sum = grid[i][j] + grid[i-1][j] + grid[i+1][j] + grid[i][j-1] + grid[i][j+1];
   }
@@ -93,5 +93,5 @@ float average(std::string neighboursList, float (*grid)[101], int i, int j) {
       }
     }
   }
-  return sum/4.0;
+  return sum/5.0;
 }
