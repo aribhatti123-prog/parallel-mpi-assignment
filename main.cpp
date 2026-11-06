@@ -14,7 +14,7 @@ int main() {
   lastGrid[40][60] = 7.2;
   lastGrid[70][25] = -1.2;
 
-  while (tempChange) {
+  while (tempChange==true) {
     tempChange = false;
     //copy grids over
     for (int i=0; i<101; i++) {
@@ -22,13 +22,13 @@ int main() {
         lastGrid[i][j] = currentGrid[i][j];
       }
     }
-
+    std::cout << "Calculating..." << std::endl;
     for (int i=0; i<101; i++) {
       for (int j=0; j<101; j++) {
         //calculate the average value of 4 adjacent squares, bar corner
         if (i==0) {
           if (j==0) {
-            average = average("ES", lastGrid, i, j);
+            averageVal = average("ES", lastGrid, i, j);
           }
           else if (j==100) {
             averageVal = average("SW", lastGrid, i, j);
@@ -59,7 +59,7 @@ int main() {
         }
 
         //check if values have converged
-        if (!tempChange && averageVal!=lastGrid[i][j]) {
+        if (averageVal!=lastGrid[i][j]) {
           tempChange = true;
         }
         currentGrid[i][j] = averageVal;
