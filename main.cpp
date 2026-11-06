@@ -1,8 +1,13 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <mpi.h>
 
-int main() {
+int main(int argc, char **argv) {
+
+  MPI_Init(&argc, &argv);
+  int myrank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 
   double lastGrid[101][101] = {0};
   double currentGrid[101][101] = {0};
@@ -13,6 +18,8 @@ int main() {
   currentGrid[50][50] = 10.0;
   currentGrid[40][60] = 7.2;
   currentGrid[70][25] = -1.2;
+
+  double start = MPI_Wtime();
 
   while (tempChange==true) {
     tempChange = false;
@@ -66,8 +73,8 @@ int main() {
       }
     }
   }
-
-  std::cout << "Equilibrium state reached. Centroid temp is " << currentGrid[55][55] << " K" << std::endl;
+  double time = MPI_Wtime() - start;
+  std::cout << "Equilibrium state reached in " << time <<"s. Centroid temp is " << currentGrid[55][55] << " K" << std::endl;
 
   return 0;
 }
