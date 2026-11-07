@@ -8,7 +8,8 @@ int main(int argc, char **argv) {
   MPI_Init(&argc, &argv);
   int myrank;
   MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-  int comm_size = MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+  int comm_size;
+  MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
   int chunk = 100/comm_size;
   int ierr;
   double rankLastGrid[chunk+1][101] = {0.0};
@@ -26,7 +27,7 @@ int main(int argc, char **argv) {
     currentGrid[50][50] = 10.0;
     currentGrid[40][60] = 7.2;
     currentGrid[70][25] = -1.2;
-    ierr = MPI_Scatter(&currentGrid, (chunk)*101, MPI_DOUBLE, rankCurrentGrid, (chunk)*101, 0, MPI_DOUBLE, MPI_COMM_WORLD);
+    ierr = MPI_Scatter(&currentGrid, (chunk)*101, MPI_DOUBLE, rankCurrentGrid, (chunk)*101, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     lastGrid[50][50] = 10.0;
     lastGrid[40][60] = 7.2;
     lastGrid[70][25] = -1.2;
@@ -86,7 +87,10 @@ int main(int argc, char **argv) {
   if (myrank==0) {
     double time = MPI_Wtime() - start;
     std::cout << "Equilibrium state reached in " << time <<"s. Centroid temp is " << lastGrid[55][55] << " K" << std::endl;
+    std::cout << "The number of processors used was " << comm_size <<std::endl;
   }
+
+  MPI_Finalize();
   return 0;
 }
 
