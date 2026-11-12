@@ -12,41 +12,38 @@ int main(int argc, char **argv) {
   int comm_size;
   ierr = MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
   int chunk = 100/comm_size;
-  double rankLastGrid[chunk][101] = {0.0};
-  double rankCurrentGrid[chunk][101] = {0.0};
+  double rankLastGrid[chunk][100] = {0.0};
+  double rankCurrentGrid[chunk][100] = {0.0};
   double start;
-  MPI_Request lastSent;
+  MPI_Request lastSent = MPI_REQUEST_NULL;
 
-  double lastGrid[101][101] = {0.0};
-  double currentGrid[101][101] = {0.0};
+  double lastGrid[100][100] = {0.0};
+  double currentGrid[100][100] = {0.0};
   bool tempChange = true;
   double averageVal;
-  double average(std::string neighboursList, double (*grid)[101], int i, int j, int* myrank, int* chunk);
+  double average(std::string neighboursList, double (*grid)[100], int i, int j, int* myrank, int* chunk);
 
   if (myrank == 0) {
     start = MPI_Wtime();
-    currentGrid[50][50] = 10.0;
-    currentGrid[40][60] = 7.2;
-    currentGrid[70][25] = -1.2;
-    ierr = MPI_Scatter(&currentGrid, (chunk)*101, MPI_DOUBLE, rankCurrentGrid, (chunk)*101, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    lastGrid[50][50] = 10.0;
-    lastGrid[40][60] = 7.2;
-    lastGrid[70][25] = -1.2;
-    ierr = MPI_Bcast(&lastGrid, 101*101, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    ierr = MPI_Scatter(&currentGrid, (chunk)*100, MPI_DOUBLE, rankCurrentGrid, (chunk)*100, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   }
+
+  lastGrid[50][50] = 10.0;
+  lastGrid[40][60] = 7.2;
+  lastGrid[70][25] = -1.2;
 
   while (tempChange==true) {
     tempChange = false;
 
     MPI_Wait(&lastSent, MPI_STATUS_IGNORE);
-    for (int i=0; i<chunk+1; i++) {
-      for (int j=0; j<101; j++) {
+    for (int i=0; i<chunk; i++) {
+      for (int j=0; j<100; j++) {
         //calculate the average value of 4 adjacent squares, bar corner
         if (j==0) {
           if (i==0) {
             averageVal = average("ES", lastGrid, i, j, &myrank, &chunk);
           }
-          else if (i==100) {
+          else if (i==chunk) {
             averageVal = average("SW", lastGrid, i, j, &myrank, &chunk);
           }
           else {
@@ -57,7 +54,7 @@ int main(int argc, char **argv) {
           if (i==0) {
             averageVal = average("NE", lastGrid, i, j, &myrank, &chunk);
           }
-          else if (i==100) {
+          else if (i==chunk) {
             averageVal = average("NW", lastGrid, i, j, &myrank, &chunk);
           }
           else {
@@ -67,7 +64,7 @@ int main(int argc, char **argv) {
         else if (i==0) {
           averageVal = average("NES", lastGrid, i, j, &myrank, &chunk);
         }
-        else if (i==100) {
+        else if (i==chunk) {
           averageVal = average("NSW", lastGrid, i, j, &myrank, &chunk);
         }
         else {
@@ -83,9 +80,11 @@ int main(int argc, char **argv) {
     }
 
     //copy grids over to last grid, and broadcast
-    ierr = MPI_Iallgather(&rankCurrentGrid, chunk*101, MPI_DOUBLE, lastGrid, 101*101, MPI_DOUBLE, MPI_COMM_WORLD, &lastSent);
+    ierr = MPI_Iallgather(&rankCurrentGrid, chunk*100, MPI_DOUBLE, lastGrid, 100*100, MPI_DOUBLE, MPI_COMM_WORLD, &lastSent);
     ierr = MPI_Allreduce(&tempChange, &tempChange, 1, MPI_C_BOOL, MPI_LOR, MPI_COMM_WORLD);
   }
+
+  MPI_Wait(&lastSent, MPI_STATUS_IGNORE);
   if (myrank==0) {
     double time = MPI_Wtime() - start;
     std::cout << "Equilibrium state reached in " << time <<"s. Centroid temp is " << lastGrid[55][55] << " K" << std::endl;
@@ -96,7 +95,7 @@ int main(int argc, char **argv) {
   return 0;
 }
 
-double average(std::string neighboursList, double (*grid)[101], int i, int j, int* myrank, int* chunk) {
+double average(std::string neighboursList, double (*grid)[100], int i, int j, int* myrank, int* chunk) {
   double sum = grid[i][j];
   i += *chunk * *myrank; //should eliminate the problem of halo data, as you are looking at the full grid anyway
   if (neighboursList.length()==4) {
