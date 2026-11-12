@@ -2,6 +2,7 @@
 #include <string>
 #include <cmath>
 #include <mpi.h>
+#include <fstream>
 
 int main(int argc, char **argv) {
 
@@ -21,6 +22,9 @@ int main(int argc, char **argv) {
   float maxDiff = 0;
   double start;
   bool tempChange = true;
+
+  std::ofstream fout;
+  for (int n=0; n<10; n++){ //runs each iteration of the code 10 times for each no. processor
 
   if (myrank == 0) {
     start = MPI_Wtime();
@@ -64,6 +68,11 @@ int main(int argc, char **argv) {
     double time = MPI_Wtime() - start;
     std::cout << "Equilibrium state reached in " << time <<"s. Centroid temp is " << lastGrid[56][56] << " C" << std::endl;
     std::cout << "The number of processors used was " << comm_size <<std::endl;
+    std::ofstream fout("output.csv", std::ios::app);
+    fout << comm_size << " , " << lastGrid[56][56] << " , " << time << "\n";
+    fout.close();
+  }
+
   }
 
   MPI_Finalize();
