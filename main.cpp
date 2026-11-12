@@ -5,16 +5,17 @@
 
 int main(int argc, char **argv) {
 
+  int ierr;
   MPI_Init(&argc, &argv);
   int myrank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+  ierr = MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
   int comm_size;
-  MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+  ierr = MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
   int chunk = 100/comm_size;
-  int ierr;
   double rankLastGrid[chunk+1][101] = {0.0};
   double rankCurrentGrid[chunk+1][101] = {0.0};
   double start;
+  MPI_Request lastSent;
 
   double lastGrid[101][101] = {0.0};
   double currentGrid[101][101] = {0.0};
@@ -37,6 +38,7 @@ int main(int argc, char **argv) {
   while (tempChange==true) {
     tempChange = false;
 
+    MPI_Wait(&lastSent, MPI_STATUS_IGNORE);
     for (int i=0; i<chunk+1; i++) {
       for (int j=0; j<101; j++) {
         //calculate the average value of 4 adjacent squares, bar corner
@@ -81,7 +83,7 @@ int main(int argc, char **argv) {
     }
 
     //copy grids over to last grid, and broadcast
-    ierr = MPI_Allgather(&rankCurrentGrid, chunk*101, MPI_DOUBLE, lastGrid, 101*101, MPI_DOUBLE, MPI_COMM_WORLD);
+    ierr = MPI_Iallgather(&rankCurrentGrid, chunk*101, MPI_DOUBLE, lastGrid, 101*101, MPI_DOUBLE, MPI_COMM_WORLD, &lastSent);
     ierr = MPI_Allreduce(&tempChange, &tempChange, 1, MPI_C_BOOL, MPI_LOR, MPI_COMM_WORLD);
   }
   if (myrank==0) {
