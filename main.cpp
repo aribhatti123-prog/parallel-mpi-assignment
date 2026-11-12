@@ -12,8 +12,8 @@ int main(int argc, char **argv) {
   int comm_size;
   ierr = MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
   int chunk = 100/comm_size;
-  double rankLastGrid[chunk+1][101] = {0.0};
-  double rankCurrentGrid[chunk+1][101] = {0.0};
+  double rankLastGrid[chunk][101] = {0.0};
+  double rankCurrentGrid[chunk][101] = {0.0};
   double start;
   MPI_Request lastSent;
 
